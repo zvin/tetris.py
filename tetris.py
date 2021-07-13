@@ -535,7 +535,7 @@ def render_grid():
 def render_preview(lines):
     # lines are lines rendered by render_grid()
     next_tetromino = tetrominoes[next_shape][0]
-    lines[0] += " ┏━━━━━━━━┓"
+    lines[0] += " ┏━━next━━┓"
     for i in range(2):
         line = next_tetromino[i]
         lines[i + 1] += " ┃"
