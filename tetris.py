@@ -13,7 +13,7 @@ from asyncio import (
 from contextlib import contextmanager
 from copy import deepcopy
 from math import floor
-from random import sample
+from random import choice
 from sys import stdin
 from termios import ECHO, ICANON, TCSADRAIN, tcgetattr, tcsetattr
 
@@ -485,8 +485,16 @@ def rotate():
             break
 
 
+bag = []
+
+
 def random_shape():
-    return sample(shapes, 1)[0]
+    global bag
+    if len(bag) == 0:
+        bag = shapes[:]
+    shape = choice(bag)
+    bag.remove(shape)
+    return shape
 
 
 def clear():
