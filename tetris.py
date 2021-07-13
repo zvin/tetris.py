@@ -506,30 +506,64 @@ def hide_cursor():
     stdout.flush()
 
 
-def render():
-    clear()
+def render_grid():
     visible_grid = deepcopy(grid)
     put_tetromino(
         visible_grid, current_shape, current_column, current_row, current_rotation
     )
-    print("┏" + "━" * width * render_width_multiplier + "┓")
+    lines = []
+    lines.append("┏" + "━" * width * render_width_multiplier + "┓")
     for line in reversed(visible_grid):
-        print("┃", end="")
+        lines.append("┃")
         for cell in line:
             cell_repr = (
                 " " * render_width_multiplier
                 if cell is None
                 else color_string(" " * render_width_multiplier, cell)
             )
-            print(cell_repr, end="")
-        print("┃")
-    print("┗" + "━" * width * render_width_multiplier + "┛")
+            lines[-1] += cell_repr
+        lines[-1] += "┃"
+    lines.append("┗" + "━" * width * render_width_multiplier + "┛")
+    return lines
+
+
+def render_preview(lines):
+    # lines are lines rendered by render_grid()
+    next_tetromino = tetrominoes[next_shape][0]
+    lines[0] += " ┏━━━━━━━━┓"
+    for i in range(2):
+        line = next_tetromino[i]
+        lines[i + 1] += " ┃"
+        for cell in line:
+            cell_repr = (
+                " " * render_width_multiplier
+                if cell == 0
+                else color_string(
+                    " " * render_width_multiplier, tetromino_colors[next_shape]
+                )
+            )
+            lines[i + 1] += cell_repr
+        if len(line) == 3:
+            lines[i + 1] += "  "
+        lines[i + 1] += "┃"
+    lines[3] += " ┗━━━━━━━━┛"
+
+
+def render():
+    lines = render_grid()
+    render_preview(lines)
+    clear()
+    print("\n".join(lines))
     hide_cursor()
 
 
+next_shape = random_shape()
+
+
 def new_tetromino():
-    global current_shape, current_column, current_row, current_rotation
-    current_shape = random_shape()
+    global current_shape, current_column, current_row, current_rotation, next_shape
+    current_shape = next_shape
+    next_shape = random_shape()
     [current_column, current_row] = spawn_position(current_shape)
     current_rotation = 0
 
@@ -609,8 +643,8 @@ game_over = False
 
 
 async def game_loop():
-    create_task(handle_input())
     new_tetromino()
+    create_task(handle_input())
     while not game_over:
         move_down()
         if game_over:
