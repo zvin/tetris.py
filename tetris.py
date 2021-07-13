@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from math import floor
 from random import choice
-from sys import stdin
+from sys import stdin, stdout
 from termios import ECHO, ICANON, TCSADRAIN, tcgetattr, tcsetattr
 
 width = 10
@@ -501,6 +501,11 @@ def clear():
     print("\x1bc")
 
 
+def hide_cursor():
+    stdout.write("\033[?25l")
+    stdout.flush()
+
+
 def render():
     clear()
     visible_grid = deepcopy(grid)
@@ -519,6 +524,7 @@ def render():
             print(cell_repr, end="")
         print("┃")
     print("┗" + "━" * width * render_width_multiplier + "┛")
+    hide_cursor()
 
 
 def new_tetromino():
