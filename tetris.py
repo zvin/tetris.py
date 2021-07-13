@@ -506,6 +506,11 @@ def hide_cursor():
     stdout.flush()
 
 
+def show_cursor():
+    stdout.write("\033[?25h")
+    stdout.flush()
+
+
 def render_grid():
     visible_grid = deepcopy(grid)
     put_tetromino(
@@ -645,12 +650,15 @@ game_over = False
 async def game_loop():
     new_tetromino()
     create_task(handle_input())
-    while not game_over:
-        move_down()
-        if game_over:
-            break
-        await sleep(1 / frequency)
-    print("game over")
+    try:
+        while not game_over:
+            move_down()
+            if game_over:
+                break
+            await sleep(1 / frequency)
+        print("game over")
+    finally:
+        show_cursor()
 
 
 run(game_loop())
