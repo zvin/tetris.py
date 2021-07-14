@@ -553,9 +553,25 @@ def render_preview(lines):
     lines[3] += " ┗━━━━━━━━┛"
 
 
+def render_score(lines):
+    # lines are lines rendered by render_grid()
+    lines[4] += " ┏━score━━┓"
+    lines[5] += " ┃{:>8}┃".format(score)
+    lines[6] += " ┗━━━━━━━━┛"
+
+
+def render_level(lines):
+    # lines are lines rendered by render_grid()
+    lines[7] += " ┏━level━━┓"
+    lines[8] += " ┃{:>8}┃".format(level)
+    lines[9] += " ┗━━━━━━━━┛"
+
+
 def render():
     lines = render_grid()
     render_preview(lines)
+    render_score(lines)
+    render_level(lines)
     clear()
     print("\n".join(lines))
     hide_cursor()
