@@ -21,6 +21,7 @@ width = 10
 height = 20
 render_width_multiplier = 2
 level = 1
+score = 0
 
 tetrominoes = {
     "i": [
@@ -609,19 +610,32 @@ async def handle_input():
                     rotate()
                 elif ch == b"B":
                     # down
-                    move_down()
+                    move_down(soft_drop=True)
                 q.clear()
                 continue
 
 
+def update_score(lines_removed):
+    global score
+    points = {
+        1: 100,
+        2: 300,
+        3: 500,
+        4: 800,
+    }
+    score += points.get(lines_removed, 0) * level
+
+
 def remove_complete_lines():
     grid[:] = [row for row in grid if not all(row)]
+    lines_removed = height - len(grid)
+    update_score(lines_removed)
     while len(grid) < height:
         grid.append([None] * width)
 
 
-def move_down():
-    global current_row, game_over
+def move_down(soft_drop=False):
+    global current_row, game_over, score
     if tetromino_touches_ground(
         current_shape, current_column, current_row, current_rotation
     ):
@@ -636,6 +650,8 @@ def move_down():
             return
         new_tetromino()
     current_row -= 1
+    if soft_drop:
+        score += 1
     render()
 
 
@@ -655,7 +671,7 @@ async def game_loop():
             if game_over:
                 break
             await sleep(interval())
-        print("game over")
+        print("game over, score:", score)
     finally:
         show_cursor()
 
