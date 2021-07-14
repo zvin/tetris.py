@@ -616,7 +616,7 @@ async def handle_input():
 
 
 def update_score(lines_removed):
-    global score
+    global score, level
     points = {
         1: 100,
         2: 300,
@@ -624,6 +624,14 @@ def update_score(lines_removed):
         4: 800,
     }
     score += points.get(lines_removed, 0) * level
+    if score >= level_goal(level):
+        level += 1
+
+
+def level_goal(level):
+    if level == 0:
+        return 0
+    return 500 * level + level_goal(level - 1)
 
 
 def remove_complete_lines():
