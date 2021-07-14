@@ -19,8 +19,8 @@ from termios import ECHO, ICANON, TCSADRAIN, tcgetattr, tcsetattr
 
 width = 10
 height = 20
-frequency = 2
 render_width_multiplier = 2
+level = 1
 
 tetrominoes = {
     "i": [
@@ -639,6 +639,10 @@ def move_down():
     render()
 
 
+def interval():
+    return (0.8 - ((level - 1) * 0.007)) ** (level - 1)
+
+
 next_shape = random_shape()
 
 
@@ -650,7 +654,7 @@ async def game_loop():
             move_down()
             if game_over:
                 break
-            await sleep(1 / frequency)
+            await sleep(interval())
         print("game over")
     finally:
         show_cursor()
