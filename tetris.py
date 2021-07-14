@@ -20,7 +20,6 @@ from termios import ECHO, ICANON, TCSADRAIN, tcgetattr, tcsetattr
 width = 10
 height = 20
 frequency = 2
-
 render_width_multiplier = 2
 
 tetrominoes = {
@@ -348,11 +347,13 @@ tetromino_colors = {
 }
 
 
+grid = [[None] * width for i in range(height)]
+game_over = False
+bag = []
+
+
 def color_string(text, color):
     return "\x1b[48;2;{};{};{}m{}\x1b[0m".format(*color, text)
-
-
-grid = [[None] * width for i in range(height)]
 
 
 def tetromino_width(shape):
@@ -485,9 +486,6 @@ def rotate():
             break
 
 
-bag = []
-
-
 def random_shape():
     global bag
     if len(bag) == 0:
@@ -560,9 +558,6 @@ def render():
     clear()
     print("\n".join(lines))
     hide_cursor()
-
-
-next_shape = random_shape()
 
 
 def new_tetromino():
@@ -644,7 +639,7 @@ def move_down():
     render()
 
 
-game_over = False
+next_shape = random_shape()
 
 
 async def game_loop():
