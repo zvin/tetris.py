@@ -368,13 +368,9 @@ def spawn_position(shape):
     return [column, row]
 
 
-def grid_iterator(shape, column, row, rotation, in_bounds=True):
+def grid_iterator(shape, column, row, rotation):
     for i, line in enumerate(reversed(tetrominoes[shape][rotation])):
-        if in_bounds and row + i >= height:
-            break
         for j, cell in enumerate(line):
-            if in_bounds and column + j >= width:
-                break
             if cell:
                 yield [i, j]
 
@@ -384,13 +380,13 @@ def put_tetromino(grid, shape, column, row, rotation):
         grid[row + i][column + j] = tetromino_colors[shape]
 
 
-def in_grid(row, column):
+def in_bounds(row, column):
     return row >= 0 and column >= 0 and column < width
 
 
 def tetromino_fits(shape, column, row, rotation):
-    for [i, j] in grid_iterator(shape, column, row, rotation, in_bounds=False):
-        if not in_grid(row + i, column + j) or grid[row + i][column + j] is not None:
+    for [i, j] in grid_iterator(shape, column, row, rotation):
+        if not in_bounds(row + i, column + j) or grid[row + i][column + j] is not None:
             return False
     return True
 
