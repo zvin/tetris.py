@@ -384,24 +384,24 @@ def in_bounds(row, column):
 
 
 def tetromino_fits(shape, column, row, rotation):
-    for [i, j] in grid_iterator(shape, column, row, rotation):
-        if not in_bounds(row + i, column + j) or grid[row + i][column + j] is not None:
-            return False
-    return True
+    return all(
+        in_bounds(row + i, column + j) and grid[row + i][column + j] is None
+        for [i, j] in grid_iterator(shape, column, row, rotation)
+    )
 
 
 def tetromino_touches_ground(shape, column, row, rotation):
-    for [i, j] in grid_iterator(shape, column, row, rotation):
-        if row + i == 0 or grid[row + i - 1][column + j] is not None:
-            return True
-    return False
+    return any(
+        row + i == 0 or grid[row + i - 1][column + j] is not None
+        for [i, j] in grid_iterator(shape, column, row, rotation)
+    )
 
 
 def tetromino_touches_ceiling(shape, column, row, rotation):
-    for [i, j] in grid_iterator(shape, column, row, rotation):
-        if row + i == visible_height:
-            return True
-    return False
+    return any(
+        row + i == visible_height
+        for [i, j] in grid_iterator(shape, column, row, rotation)
+    )
 
 
 def move(delta):
