@@ -12,7 +12,6 @@ from asyncio import (
 )
 from contextlib import contextmanager
 from copy import deepcopy
-from math import floor
 from random import choice
 from sys import stdin, stdout
 from termios import ECHO, ICANON, TCSADRAIN, tcgetattr, tcsetattr
@@ -364,7 +363,7 @@ def tetromino_width(shape):
 
 def spawn_position(shape):
     row = visible_height
-    column = floor((width - tetromino_width(shape)) / 2)
+    column = (width - tetromino_width(shape)) // 2
     return [column, row]
 
 
