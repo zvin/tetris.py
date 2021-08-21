@@ -18,7 +18,8 @@ from sys import stdin, stdout
 from termios import ECHO, ICANON, TCSADRAIN, tcgetattr, tcsetattr
 
 width = 10
-height = 20
+visible_height = 20
+height = visible_height * 2
 render_width_multiplier = 2
 level = 1
 score = 0
@@ -366,82 +367,61 @@ def tetromino_height(shape):
 
 
 def spawn_position(shape):
-    row = height
+    row = visible_height
     column = floor((width - tetromino_width(shape)) / 2)
     return [column, row]
 
 
-def put_tetromino(grid, shape, column, row, rotation):
+def grid_iterator(shape, column, row, rotation):
     for i, line in enumerate(reversed(tetrominoes[shape][rotation])):
+        if row + i >= height:
+            break
         for j, cell in enumerate(line):
-            if cell:
-                try:
-                    # TODO: check bounds instead
-                    grid[row + i][column + j] = tetromino_colors[shape]
-                except:
-                    pass
+            if column + j >= width:
+                break
+            yield [i, j, cell]
+
+
+def put_tetromino(grid, shape, column, row, rotation):
+    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
+        if cell:
+            grid[row + i][column + j] = tetromino_colors[shape]
 
 
 def tetromino_fits(shape, column, row, rotation):
-    for i, line in enumerate(reversed(tetrominoes[shape][rotation])):
-        for j, cell in enumerate(line):
-            if cell and grid[row + i][column + j] is not None:
-                return False
+    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
+        if cell and grid[row + i][column + j] is not None:
+            return False
     return True
 
 
 def tetromino_touches_ground(shape, column, row, rotation):
-    for i, line in enumerate(reversed(tetrominoes[shape][rotation])):
-        for j, cell in enumerate(line):
-            try:
-                # TODO: check bounds instead
-                if cell and (row + i == 0 or grid[row + i - 1][column + j] is not None):
-                    return True
-            except:
-                pass
+    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
+        if cell and (row + i == 0 or grid[row + i - 1][column + j] is not None):
+            return True
     return False
 
 
 def tetromino_touches_ceiling(shape, column, row, rotation):
-    # TODO: only check the highest row
-    for i, line in enumerate(reversed(tetrominoes[shape][rotation])):
-        for j, cell in enumerate(line):
-            try:
-                # TODO: check bounds instead
-                if cell and row + i == height + 1:
-                    return True
-            except:
-                pass
+    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
+        if cell and row + i == visible_height:
+            return True
     return False
 
 
 def tetromino_touches_left(shape, column, row, rotation):
-    # TODO: only check the leftmost blocks
-    for i, line in enumerate(reversed(tetrominoes[shape][rotation])):
-        for j, cell in enumerate(line):
-            try:
-                # TODO: check bounds instead
-                if cell and (
-                    column + j == 0 or grid[row + i][column + j - 1] is not None
-                ):
-                    return True
-            except:
-                pass
+    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
+        if cell and (column + j == 0 or grid[row + i][column + j - 1] is not None):
+            return True
     return False
 
 
 def tetromino_touches_right(shape, column, row, rotation):
-    # TODO: only check the rightmost blocks
-    for i, line in enumerate(reversed(tetrominoes[shape][rotation])):
-        for j, cell in enumerate(line):
-            try:
-                # TODO: check bounds instead
-                if cell and (
-                    column + j == width - 1 or grid[row + i][column + j + 1] is not None
-                ):
-                    return True
-            except:
-                pass
+    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
+        if cell and (
+            column + j == width - 1 or grid[row + i][column + j + 1] is not None
+        ):
+            return True
     return False
 
 
@@ -517,7 +497,7 @@ def render_grid():
     )
     lines = []
     lines.append("┏" + "━" * width * render_width_multiplier + "┓")
-    for line in reversed(visible_grid):
+    for line in list(reversed(visible_grid))[visible_height:]:
         lines.append("┃")
         for cell in line:
             cell_repr = (
