@@ -588,6 +588,8 @@ async def handle_input():
             # '' means EOF, chr(4) means EOT (sent by CTRL+D on UNIX terminals)
             if not ch or ord(ch) <= 4:
                 break
+            elif ch == b" ":
+                hard_drop()
             elif ch == b"\x1b":
                 q.append(ch)
                 continue
@@ -638,7 +640,13 @@ def remove_complete_lines():
         grid.append([None] * width)
 
 
-def move_down(soft_drop=False):
+def hard_drop():
+    while not move_down(hard_drop=True):
+        pass
+    render()
+
+
+def move_down(soft_drop=False, hard_drop=False):
     global current_row, game_over, score
     if tetromino_touches_ground(
         current_shape, current_column, current_row, current_rotation
@@ -651,12 +659,15 @@ def move_down(soft_drop=False):
             current_shape, current_column, current_row, current_rotation
         ):
             game_over = True
-            return
         new_tetromino()
+        return True
     current_row -= 1
     if soft_drop:
         score += 1
-    render()
+    if hard_drop:
+        score += 2
+    else:
+        render()
 
 
 def interval():
