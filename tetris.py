@@ -362,83 +362,63 @@ def tetromino_width(shape):
     return len(tetrominoes[shape][0][0])
 
 
-def tetromino_height(shape):
-    return len(tetrominoes[shape][0])
-
-
 def spawn_position(shape):
     row = visible_height
     column = floor((width - tetromino_width(shape)) / 2)
     return [column, row]
 
 
-def grid_iterator(shape, column, row, rotation):
+def grid_iterator(shape, column, row, rotation, in_bounds=True):
     for i, line in enumerate(reversed(tetrominoes[shape][rotation])):
-        if row + i >= height:
+        if in_bounds and row + i >= height:
             break
         for j, cell in enumerate(line):
-            if column + j >= width:
+            if in_bounds and column + j >= width:
                 break
-            yield [i, j, cell]
+            if cell:
+                yield [i, j]
 
 
 def put_tetromino(grid, shape, column, row, rotation):
-    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
-        if cell:
-            grid[row + i][column + j] = tetromino_colors[shape]
+    for [i, j] in grid_iterator(shape, column, row, rotation):
+        grid[row + i][column + j] = tetromino_colors[shape]
+
+
+def in_grid(row, column):
+    return row >= 0 and column >= 0 and column < width
 
 
 def tetromino_fits(shape, column, row, rotation):
-    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
-        if cell and grid[row + i][column + j] is not None:
+    for [i, j] in grid_iterator(shape, column, row, rotation, in_bounds=False):
+        if not in_grid(row + i, column + j) or grid[row + i][column + j] is not None:
             return False
     return True
 
 
 def tetromino_touches_ground(shape, column, row, rotation):
-    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
-        if cell and (row + i == 0 or grid[row + i - 1][column + j] is not None):
+    for [i, j] in grid_iterator(shape, column, row, rotation):
+        if row + i == 0 or grid[row + i - 1][column + j] is not None:
             return True
     return False
 
 
 def tetromino_touches_ceiling(shape, column, row, rotation):
-    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
-        if cell and row + i == visible_height:
-            return True
-    return False
-
-
-def tetromino_touches_left(shape, column, row, rotation):
-    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
-        if cell and (column + j == 0 or grid[row + i][column + j - 1] is not None):
-            return True
-    return False
-
-
-def tetromino_touches_right(shape, column, row, rotation):
-    for [i, j, cell] in grid_iterator(shape, column, row, rotation):
-        if cell and (
-            column + j == width - 1 or grid[row + i][column + j + 1] is not None
-        ):
+    for [i, j] in grid_iterator(shape, column, row, rotation):
+        if row + i == visible_height:
             return True
     return False
 
 
 def move_left():
     global current_column
-    if not tetromino_touches_left(
-        current_shape, current_column, current_row, current_rotation
-    ):
+    if tetromino_fits(current_shape, current_column - 1, current_row, current_rotation):
         current_column -= 1
         render()
 
 
 def move_right():
     global current_column
-    if not tetromino_touches_right(
-        current_shape, current_column, current_row, current_rotation
-    ):
+    if tetromino_fits(current_shape, current_column + 1, current_row, current_rotation):
         current_column += 1
         render()
 
@@ -451,15 +431,7 @@ def rotate():
     for wall_kick in wall_kicks[current_shape][current_rotation][next_rotation]:
         next_column = current_column + wall_kick[0]
         next_row = current_row + wall_kick[1]
-        if not (
-            tetromino_touches_left(current_shape, next_column, next_row, next_rotation)
-            or tetromino_touches_right(
-                current_shape, next_column, next_row, next_rotation
-            )
-            or tetromino_touches_ground(
-                current_shape, next_column, next_row, next_rotation
-            )
-        ):
+        if tetromino_fits(current_shape, next_column, next_row, next_rotation):
             current_rotation = next_rotation
             current_row = next_row
             current_column = next_column
