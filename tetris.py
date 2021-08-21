@@ -405,17 +405,11 @@ def tetromino_touches_ceiling(shape, column, row, rotation):
     return False
 
 
-def move_left():
+def move(delta):
     global current_column
-    if tetromino_fits(current_shape, current_column - 1, current_row, current_rotation):
-        current_column -= 1
-        render()
-
-
-def move_right():
-    global current_column
-    if tetromino_fits(current_shape, current_column + 1, current_row, current_rotation):
-        current_column += 1
+    next_column = current_column + delta
+    if tetromino_fits(current_shape, next_column, current_row, current_rotation):
+        current_column = next_column
         render()
 
 
@@ -567,10 +561,10 @@ async def handle_input():
             elif q == [b"\x1b", b"["]:
                 if ch == b"D":
                     # left
-                    move_left()
+                    move(-1)
                 elif ch == b"C":
                     # right
-                    move_right()
+                    move(1)
                 elif ch == b"A":
                     # up
                     rotate()
