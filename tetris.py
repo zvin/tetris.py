@@ -374,9 +374,9 @@ def grid_iterator(shape, column, row, rotation):
                 yield [i, j]
 
 
-def put_tetromino(grid, shape, column, row, rotation):
+def put_tetromino(grid, shape, column, row, rotation, character=" "):
     for [i, j] in grid_iterator(shape, column, row, rotation):
-        grid[row + i][column + j] = tetromino_colors[shape]
+        grid[row + i][column + j] = (character, tetromino_colors[shape])
 
 
 def in_bounds(row, column):
@@ -451,8 +451,25 @@ def show_cursor():
     stdout.flush()
 
 
+def get_ghost_row():
+    ghost_row = current_row
+    while tetromino_fits(
+        current_shape, current_column, ghost_row - 1, current_rotation
+    ):
+        ghost_row -= 1
+    return ghost_row
+
+
 def render_grid():
     visible_grid = deepcopy(grid)
+    put_tetromino(
+        visible_grid,
+        current_shape,
+        current_column,
+        get_ghost_row(),
+        current_rotation,
+        "🮙",
+    )
     put_tetromino(
         visible_grid, current_shape, current_column, current_row, current_rotation
     )
@@ -464,7 +481,7 @@ def render_grid():
             cell_repr = (
                 " " * render_width_multiplier
                 if cell is None
-                else color_string(" " * render_width_multiplier, cell)
+                else color_string(cell[0] * render_width_multiplier, cell[1])
             )
             lines[-1] += cell_repr
         lines[-1] += "┃"
