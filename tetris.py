@@ -521,11 +521,22 @@ def render_level(lines):
     lines[9] += " ┗━━━━━━━━┛"
 
 
+def render_controls(lines):
+    lines[10] += " ┏━━━━controls━━━━┓"
+    lines[11] += " ┃🠅: rotate       ┃"
+    lines[12] += " ┃🠄: left         ┃"
+    lines[13] += " ┃🠆: right        ┃"
+    lines[14] += " ┃🠇: soft drop    ┃"
+    lines[15] += " ┃space: hard drop┃"
+    lines[16] += " ┗━━━━━━━━━━━━━━━━┛"
+
+
 def render():
     lines = render_grid()
     render_preview(lines)
     render_score(lines)
     render_level(lines)
+    render_controls(lines)
     clear()
     print("\n".join(lines))
     hide_cursor()
