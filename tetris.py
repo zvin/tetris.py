@@ -22,6 +22,7 @@ height = visible_height * 2
 render_width_multiplier = 2
 level = 1
 score = 0
+paused = False
 
 tetrominoes = {
     "i": [
@@ -402,6 +403,8 @@ def tetromino_touches_ceiling(shape, column, row, rotation):
 
 
 def move(delta):
+    if paused:
+        return
     global current_column
     next_column = current_column + delta
     if tetromino_fits(current_shape, next_column, current_row, current_rotation):
@@ -411,6 +414,8 @@ def move(delta):
 
 def rotate():
     global current_rotation, current_column, current_row
+    if paused:
+        return
     if current_shape == "o":
         return
     next_rotation = (current_rotation + 1) % 4
@@ -528,7 +533,10 @@ def render_controls(lines):
     lines[13] += " ┃🠆: right        ┃"
     lines[14] += " ┃🠇: soft drop    ┃"
     lines[15] += " ┃space: hard drop┃"
-    lines[16] += " ┗━━━━━━━━━━━━━━━━┛"
+    lines[16] += " ┃p: pause        ┃"
+    lines[17] += " ┗━━━━━━━━━━━━━━━━┛"
+    if paused:
+        lines[18] += " PAUSED"
 
 
 def render():
@@ -562,6 +570,12 @@ def raw_mode(file):
         tcsetattr(file.fileno(), TCSADRAIN, old_attrs)
 
 
+def pause():
+    global paused
+    paused = not paused
+    render()
+
+
 async def handle_input():
     q = []
     with raw_mode(stdin):
@@ -573,6 +587,8 @@ async def handle_input():
             # '' means EOF, chr(4) means EOT (sent by CTRL+D on UNIX terminals)
             if not ch or ord(ch) <= 4:
                 break
+            elif ch == b"p":
+                pause()
             elif ch == b" ":
                 hard_drop()
             elif ch == b"\x1b":
@@ -626,6 +642,8 @@ def remove_complete_lines():
 
 
 def hard_drop():
+    if paused:
+        return
     while not move_down(hard_drop=True):
         pass
     render()
@@ -633,6 +651,8 @@ def hard_drop():
 
 def move_down(soft_drop=False, hard_drop=False):
     global current_row, game_over, score
+    if paused:
+        return
     if tetromino_touches_ground(
         current_shape, current_column, current_row, current_rotation
     ):
