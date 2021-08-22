@@ -391,10 +391,7 @@ def tetromino_fits(shape, column, row, rotation):
 
 
 def tetromino_touches_ground(shape, column, row, rotation):
-    return any(
-        row + i == 0 or grid[row + i - 1][column + j] is not None
-        for [i, j] in grid_iterator(shape, column, row, rotation)
-    )
+    return not tetromino_fits(shape, column, row - 1, rotation)
 
 
 def tetromino_touches_ceiling(shape, column, row, rotation):
@@ -453,8 +450,8 @@ def show_cursor():
 
 def get_ghost_row():
     ghost_row = current_row
-    while tetromino_fits(
-        current_shape, current_column, ghost_row - 1, current_rotation
+    while not tetromino_touches_ground(
+        current_shape, current_column, ghost_row, current_rotation
     ):
         ghost_row -= 1
     return ghost_row
