@@ -489,10 +489,11 @@ def render_grid():
 def render_preview(lines):
     # lines are lines rendered by render_grid()
     next_tetromino = tetrominoes[next_shape][0]
+    padding = " " if tetromino_width(next_shape) == 3 else ""
     lines[0] += " ┏━━next━━┓"
     for i in range(2):
         line = next_tetromino[i]
-        lines[i + 1] += " ┃"
+        lines[i + 1] += " ┃" + padding
         for cell in line:
             cell_repr = (
                 " " * render_width_multiplier
@@ -502,9 +503,7 @@ def render_preview(lines):
                 )
             )
             lines[i + 1] += cell_repr
-        if len(line) == 3:
-            lines[i + 1] += "  "
-        lines[i + 1] += "┃"
+        lines[i + 1] += padding + "┃"
     lines[3] += " ┗━━━━━━━━┛"
 
 
