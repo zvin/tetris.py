@@ -539,6 +539,7 @@ controls = (
             🠇: soft drop
             space: hard drop
             p: pause
+            q: quit
         """
     )
     .strip()
@@ -553,7 +554,7 @@ def render():
     render_side(lines, 7, "level", ["{:>8}".format(level)])
     render_side(lines, 10, "controls", controls)
     if paused:
-        lines[18] += " PAUSED"
+        lines[19] += " PAUSED"
     clear()
     print("\n".join(lines))
     hide_cursor()
@@ -586,6 +587,7 @@ def pause():
 
 
 async def handle_input():
+    global game_over
     q = []
     with raw_mode(stdin):
         reader = StreamReader()
@@ -596,6 +598,8 @@ async def handle_input():
             # '' means EOF, chr(4) means EOT (sent by CTRL+D on UNIX terminals)
             if not ch or ord(ch) <= 4:
                 break
+            elif ch == b"q":
+                game_over = True
             elif ch == b"p":
                 pause()
             elif ch == b" ":
