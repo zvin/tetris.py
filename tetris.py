@@ -15,6 +15,7 @@ from copy import deepcopy
 from random import choice
 from sys import stdin, stdout
 from termios import ECHO, ICANON, TCSADRAIN, tcgetattr, tcsetattr
+from textwrap import dedent
 
 width = 10
 visible_height = 20
@@ -462,6 +463,18 @@ def get_ghost_row():
     return ghost_row
 
 
+def frame(lines, title, width=None):
+    if width is None:
+        width = max(len(line) for line in lines)
+    padding_left = (width - len(title)) // 2
+    padding_right = width - len(title) - padding_left
+    return [
+        "┏" + "━" * padding_left + title + "━" * padding_right + "┓",
+        *("┃" + line + " " * (width - len(line)) + "┃" for line in lines),
+        "┗" + "━" * width + "┛",
+    ]
+
+
 def render_grid():
     visible_grid = deepcopy(grid)
     put_tetromino(
@@ -475,76 +488,72 @@ def render_grid():
     put_tetromino(
         visible_grid, current_shape, current_column, current_row, current_rotation
     )
-    lines = []
-    lines.append("┏" + "━" * width * render_width_multiplier + "┓")
-    for line in list(reversed(visible_grid))[visible_height:]:
-        lines.append("┃")
-        for cell in line:
-            cell_repr = (
+    lines = [
+        "".join(
+            (
                 " " * render_width_multiplier
                 if cell is None
                 else color_string(cell[0] * render_width_multiplier, cell[1])
+                for cell in line
             )
-            lines[-1] += cell_repr
-        lines[-1] += "┃"
-    lines.append("┗" + "━" * width * render_width_multiplier + "┛")
-    return lines
+        )
+        for line in list(reversed(visible_grid))[visible_height:]
+    ]
+    return frame(lines, "", width * render_width_multiplier)
 
 
-def render_preview(lines):
+def render_side(lines, n, title, data, width=None):
     # lines are lines rendered by render_grid()
+    data = frame(data, title, width)
+    for i, line in enumerate(data, 0):
+        lines[n + i] += " " + line
+
+
+def render_preview():
     next_tetromino = tetrominoes[next_shape][0]
     padding = " " if tetromino_width(next_shape) == 3 else ""
-    lines[0] += " ┏━━next━━┓"
-    for i in range(2):
-        line = next_tetromino[i]
-        lines[i + 1] += " ┃" + padding
-        for cell in line:
-            cell_repr = (
-                " " * render_width_multiplier
-                if cell == 0
-                else color_string(
-                    " " * render_width_multiplier, tetromino_colors[next_shape]
-                )
+    block = " " * render_width_multiplier
+    return [
+        "".join(
+            (
+                padding,
+                *(
+                    block
+                    if cell == 0
+                    else color_string(block, tetromino_colors[next_shape])
+                    for cell in tetromino_line
+                ),
+                padding,
             )
-            lines[i + 1] += cell_repr
-        lines[i + 1] += padding + "┃"
-    lines[3] += " ┗━━━━━━━━┛"
+        )
+        for tetromino_line in next_tetromino[:2]
+    ]
 
 
-def render_score(lines):
-    # lines are lines rendered by render_grid()
-    lines[4] += " ┏━score━━┓"
-    lines[5] += " ┃{:>8}┃".format(score)
-    lines[6] += " ┗━━━━━━━━┛"
-
-
-def render_level(lines):
-    # lines are lines rendered by render_grid()
-    lines[7] += " ┏━level━━┓"
-    lines[8] += " ┃{:>8}┃".format(level)
-    lines[9] += " ┗━━━━━━━━┛"
-
-
-def render_controls(lines):
-    lines[10] += " ┏━━━━controls━━━━┓"
-    lines[11] += " ┃🠅: rotate       ┃"
-    lines[12] += " ┃🠄: left         ┃"
-    lines[13] += " ┃🠆: right        ┃"
-    lines[14] += " ┃🠇: soft drop    ┃"
-    lines[15] += " ┃space: hard drop┃"
-    lines[16] += " ┃p: pause        ┃"
-    lines[17] += " ┗━━━━━━━━━━━━━━━━┛"
-    if paused:
-        lines[18] += " PAUSED"
+controls = (
+    dedent(
+        """
+            🠅: rotate
+            🠄: left
+            🠆: right
+            🠇: soft drop
+            space: hard drop
+            p: pause
+        """
+    )
+    .strip()
+    .split("\n")
+)
 
 
 def render():
     lines = render_grid()
-    render_preview(lines)
-    render_score(lines)
-    render_level(lines)
-    render_controls(lines)
+    render_side(lines, 0, "next", render_preview(), 8)
+    render_side(lines, 4, "score", ["{:>8}".format(score)])
+    render_side(lines, 7, "level", ["{:>8}".format(level)])
+    render_side(lines, 10, "controls", controls)
+    if paused:
+        lines[18] += " PAUSED"
     clear()
     print("\n".join(lines))
     hide_cursor()
