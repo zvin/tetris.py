@@ -537,7 +537,7 @@ controls = (
             🠄: left
             🠆: right
             🠇: soft drop
-            space: hard drop
+            ␣: hard drop
             p: pause
             q: quit
         """
