@@ -638,9 +638,7 @@ def update_score(lines_removed):
 
 
 def level_goal(level):
-    if level == 0:
-        return 0
-    return 500 * level + level_goal(level - 1)
+    return sum(range(level + 1)) * 500
 
 
 def remove_complete_lines():
