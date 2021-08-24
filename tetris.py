@@ -606,10 +606,8 @@ async def handle_input():
                 hard_drop()
             elif ch == b"\x1b":
                 q.append(ch)
-                continue
             elif q == [b"\x1b"] and ch == b"[":
                 q.append(ch)
-                continue
             elif q == [b"\x1b", b"["]:
                 if ch == b"D":
                     # left
@@ -624,7 +622,6 @@ async def handle_input():
                     # down
                     move_down(soft_drop=True)
                 q.clear()
-                continue
 
 
 def update_score(lines_removed):
