@@ -505,7 +505,7 @@ def render_grid():
 def render_side(lines, n, title, data, width=None):
     # lines are lines rendered by render_grid()
     data = frame(data, title, width)
-    for i, line in enumerate(data, 0):
+    for i, line in enumerate(data):
         lines[n + i] += " " + line
 
 
