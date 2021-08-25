@@ -423,7 +423,9 @@ def rotate(direction):
     if current_shape == "o":
         return
     next_rotation = (current_rotation + direction) % 4
-    for i, wall_kick in enumerate(wall_kicks[current_shape][current_rotation][next_rotation]):
+    for i, wall_kick in enumerate(
+        wall_kicks[current_shape][current_rotation][next_rotation]
+    ):
         next_column = current_column + wall_kick[0]
         next_row = current_row + wall_kick[1]
         if tetromino_fits(current_shape, next_column, next_row, next_rotation):
@@ -636,7 +638,7 @@ def t_corner_count(row, column):
     count = 0
     for i in [0, 2]:
         for j in [0, 2]:
-            if grid[row + i, column +j] is not None:
+            if grid[row + i, column + j] is not None:
                 count += 1
     return count
 
