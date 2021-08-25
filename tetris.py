@@ -413,13 +413,13 @@ def move(delta):
         render()
 
 
-def rotate():
+def rotate(direction):
     global current_rotation, current_column, current_row
     if paused:
         return
     if current_shape == "o":
         return
-    next_rotation = (current_rotation + 1) % 4
+    next_rotation = (current_rotation + direction) % 4
     for wall_kick in wall_kicks[current_shape][current_rotation][next_rotation]:
         next_column = current_column + wall_kick[0]
         next_row = current_row + wall_kick[1]
@@ -533,10 +533,11 @@ def render_preview():
 controls = (
     dedent(
         """
-            🠅: rotate
+            🠅: rotate cw
             🠄: left
             🠆: right
             🠇: soft drop
+            x rotate ccw
             ␣: hard drop
             p: pause
             q: quit
@@ -602,6 +603,8 @@ async def handle_input():
                 game_over = True
             elif ch == b"p":
                 pause()
+            elif ch == b"x":
+                rotate(-1)
             elif ch == b" ":
                 hard_drop()
             elif ch == b"\x1b":
@@ -617,7 +620,7 @@ async def handle_input():
                     move(1)
                 elif ch == b"A":
                     # up
-                    rotate()
+                    rotate(1)
                 elif ch == b"B":
                     # down
                     move_down(soft_drop=True)
