@@ -24,6 +24,7 @@ render_width_multiplier = 2
 level = 1
 score = 0
 paused = False
+last_movement = None
 
 tetrominoes = {
     "i": [
@@ -404,18 +405,19 @@ def tetromino_touches_ceiling(shape, column, row, rotation):
 
 
 def move(delta):
+    global current_column, last_movement
     if paused:
         return
-    global current_column
     next_column = current_column + delta
     if tetromino_fits(current_shape, next_column, current_row, current_rotation):
         current_column = next_column
+        last_movement = "move"
         render()
 
 
 def rotate(direction):
     # returns True is a wall kick was used
-    global current_rotation, current_column, current_row
+    global current_rotation, current_column, current_row, last_movement
     if paused:
         return
     if current_shape == "o":
@@ -428,6 +430,7 @@ def rotate(direction):
             current_rotation = next_rotation
             current_row = next_row
             current_column = next_column
+            last_movement = "rotate"
             render()
             break
     return i == 0
@@ -672,7 +675,7 @@ def hard_drop():
 
 
 def move_down(soft_drop=False, hard_drop=False):
-    global current_row, game_over, score
+    global current_row, game_over, score, last_movement
     if paused:
         return
     if tetromino_touches_ground(
@@ -689,6 +692,7 @@ def move_down(soft_drop=False, hard_drop=False):
         new_tetromino()
         return True
     current_row -= 1
+    last_movement = "down"
     if soft_drop:
         score += 1
     if hard_drop:
