@@ -414,13 +414,14 @@ def move(delta):
 
 
 def rotate(direction):
+    # returns True is a wall kick was used
     global current_rotation, current_column, current_row
     if paused:
         return
     if current_shape == "o":
         return
     next_rotation = (current_rotation + direction) % 4
-    for wall_kick in wall_kicks[current_shape][current_rotation][next_rotation]:
+    for i, wall_kick in enumerate(wall_kicks[current_shape][current_rotation][next_rotation]):
         next_column = current_column + wall_kick[0]
         next_row = current_row + wall_kick[1]
         if tetromino_fits(current_shape, next_column, next_row, next_rotation):
@@ -429,6 +430,7 @@ def rotate(direction):
             current_column = next_column
             render()
             break
+    return i == 0
 
 
 def random_shape():
@@ -625,6 +627,15 @@ async def handle_input():
                     # down
                     move_down(soft_drop=True)
                 q.clear()
+
+
+def t_corner_count(row, column):
+    count = 0
+    for i in [0, 2]:
+        for j in [0, 2]:
+            if grid[row + i, column +j] is not None:
+                count += 1
+    return count
 
 
 def update_score(lines_removed):
