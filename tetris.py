@@ -25,6 +25,7 @@ level = 1
 score = 0
 paused = False
 last_movement = None
+wall_kicked = False
 
 tetrominoes = {
     "i": [
@@ -416,8 +417,7 @@ def move(delta):
 
 
 def rotate(direction):
-    # returns True is a wall kick was used
-    global current_rotation, current_column, current_row, last_movement
+    global current_rotation, current_column, current_row, last_movement, wall_kicked
     if paused:
         return
     if current_shape == "o":
@@ -435,7 +435,7 @@ def rotate(direction):
             last_movement = "rotate"
             render()
             break
-    return i == 0
+    wall_kicked = i == 0
 
 
 def random_shape():
@@ -638,20 +638,38 @@ def t_corner_count(row, column):
     count = 0
     for i in [0, 2]:
         for j in [0, 2]:
-            if grid[row + i, column + j] is not None:
+            r = row + i
+            c = column + j
+            if not in_bounds(r, c) or grid[row + i][column + j] is not None:
                 count += 1
     return count
 
 
-def update_score(lines_removed):
+def update_score(lines_removed, t_spin, mini_t_spin):
     global score, level
+    mini_t_spin_points = {
+        0: 100,
+        1: 200,
+        2: 400,
+    }
+    t_spin_points = {
+        0: 400,
+        1: 800,
+        2: 1200,
+        3: 1600,
+    }
     points = {
         1: 100,
         2: 300,
         3: 500,
         4: 800,
     }
-    score += points.get(lines_removed, 0) * level
+    p = points
+    if t_spin:
+        p = t_spin_points
+    elif mini_t_spin:
+        p = mini_t_spin_points
+    score += p.get(lines_removed, 0) * level
     if score >= level_goal(level):
         level += 1
 
@@ -660,10 +678,10 @@ def level_goal(level):
     return sum(range(level + 1)) * 500
 
 
-def remove_complete_lines():
+def remove_complete_lines(t_spin, mini_t_spin):
     grid[:] = [row for row in grid if not all(row)]
     lines_removed = height - len(grid)
-    update_score(lines_removed)
+    update_score(lines_removed, t_spin, mini_t_spin)
     while len(grid) < height:
         grid.append([None] * width)
 
@@ -683,10 +701,18 @@ def move_down(soft_drop=False, hard_drop=False):
     if tetromino_touches_ground(
         current_shape, current_column, current_row, current_rotation
     ):
+        t_spin = False
+        mini_t_spin = False
+        if last_movement == "rotate":
+            if t_corner_count(current_row, current_column) >= 3:
+                if wall_kicked:
+                    mini_t_spin = True
+                else:
+                    t_spin = True
         put_tetromino(
             grid, current_shape, current_column, current_row, current_rotation
         )
-        remove_complete_lines()
+        remove_complete_lines(t_spin, mini_t_spin)
         if tetromino_touches_ceiling(
             current_shape, current_column, current_row, current_rotation
         ):
