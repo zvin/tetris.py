@@ -16,6 +16,7 @@ from random import choice
 from sys import stdin, stdout
 from termios import ECHO, ICANON, TCSADRAIN, tcgetattr, tcsetattr
 from textwrap import dedent
+from time import time
 
 tetrominoes = {
     "i": [
@@ -347,6 +348,7 @@ render_width_multiplier = 2
 
 class Game:
     test = False
+    debug_lines = []
     width = 10
     visible_height = 20
     height = visible_height * 2
@@ -614,6 +616,7 @@ class Game:
             lines[20] += " PAUSED"
         if not self.test:
             clear()
+        lines += self.debug_lines
         print("\n".join(lines))
         if not self.test:
             hide_cursor()
@@ -621,16 +624,28 @@ class Game:
     def interval(self):
         return (0.8 - ((self.level - 1) * 0.007)) ** (self.level - 1)
 
+
+    def debug(self, *args):
+        self.debug_lines.append(" ".join(map(str, args)))
+        self.debug_lines = self.debug_lines[-5:]
+
+    async def timer(self):
+        target_time = time()
+        while not self.game_over:
+            target_time += self.interval()
+            await sleep(target_time - time())
+            if self.game_over:
+                break
+            yield
+
+
     async def game_loop(self):
         # TODO: move out of Game
         self.new_tetromino()
         create_task(self.handle_input())
         try:
-            while not self.game_over:
+            async for tick in self.timer():
                 self.move_down()
-                if self.game_over:
-                    break
-                await sleep(self.interval())
             print("game over, score:", self.score)
         finally:
             show_cursor()
