@@ -1,14 +1,13 @@
 [tool.poetry]
 name = "tetris.py"
 version = "0.1.0"
-description = ""
+description = "Simple Python Tetris running in a terminal"
 authors = ["Alexis Svinartchouk <zvin@free.fr>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
 black = "^21.6b0"
 isort = "^5.9.2"
 
