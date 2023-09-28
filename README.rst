@@ -1,8 +1,8 @@
 tetris.py
 =========
 
-Simple python3 tetris running in a terminal.::
-
+Simple python3 tetris running in a terminal.
+::
   python tetris.py
 
 
