@@ -342,6 +342,24 @@ tetromino_colors = {
     "i": cyan,
 }
 
+mini_t_spin_points = {
+    0: 100,
+    1: 200,
+    2: 400,
+}
+t_spin_points = {
+    0: 400,
+    1: 800,
+    2: 1200,
+    3: 1600,
+}
+points = {
+    1: 100,
+    2: 300,
+    3: 500,
+    4: 800,
+}
+
 
 render_width_multiplier = 2
 
@@ -440,24 +458,6 @@ class Game:
         return count
 
     def update_score(self, lines_removed, t_spin, mini_t_spin):
-        # TODO: move points out of Game
-        mini_t_spin_points = {
-            0: 100,
-            1: 200,
-            2: 400,
-        }
-        t_spin_points = {
-            0: 400,
-            1: 800,
-            2: 1200,
-            3: 1600,
-        }
-        points = {
-            1: 100,
-            2: 300,
-            3: 500,
-            4: 800,
-        }
         p = points
         if t_spin:
             p = t_spin_points
@@ -624,7 +624,6 @@ class Game:
     def interval(self):
         return (0.8 - ((self.level - 1) * 0.007)) ** (self.level - 1)
 
-
     def debug(self, *args):
         self.debug_lines.append(" ".join(map(str, args)))
         self.debug_lines = self.debug_lines[-5:]
@@ -637,7 +636,6 @@ class Game:
             if self.game_over:
                 break
             yield
-
 
     async def game_loop(self):
         # TODO: move out of Game
