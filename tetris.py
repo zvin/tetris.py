@@ -637,56 +637,6 @@ class Game:
                 break
             yield
 
-    async def game_loop(self):
-        # TODO: move out of Game
-        self.new_tetromino()
-        create_task(self.handle_input())
-        try:
-            async for tick in self.timer():
-                self.move_down()
-            print("game over, score:", self.score)
-        finally:
-            show_cursor()
-
-    async def handle_input(self):
-        # TODO: move out of Game
-        q = []
-        with raw_mode(stdin):
-            reader = StreamReader()
-            loop = get_event_loop()
-            await loop.connect_read_pipe(lambda: StreamReaderProtocol(reader), stdin)
-            while not reader.at_eof():
-                ch = await reader.read(1)
-                # '' means EOF, chr(4) means EOT (sent by CTRL+D on UNIX terminals)
-                if not ch or ord(ch) <= 4:
-                    break
-                elif ch == b"q":
-                    self.game_over = True
-                elif ch == b"p":
-                    self.pause()
-                elif ch == b"x":
-                    self.rotate(-1)
-                elif ch == b" ":
-                    self.hard_drop()
-                elif ch == b"\x1b":
-                    q.append(ch)
-                elif q == [b"\x1b"] and ch == b"[":
-                    q.append(ch)
-                elif q == [b"\x1b", b"["]:
-                    if ch == b"D":
-                        # left
-                        self.move(-1)
-                    elif ch == b"C":
-                        # right
-                        self.move(1)
-                    elif ch == b"A":
-                        # up
-                        self.rotate(1)
-                    elif ch == b"B":
-                        # down
-                        self.move_down(soft_drop=True)
-                    q.clear()
-
 
 def color_string(text, color):
     return "\x1b[48;2;{};{};{}m{}\x1b[0m".format(*color, text)
@@ -775,6 +725,56 @@ def level_goal(level):
     return sum(range(level + 1)) * 500
 
 
+async def handle_input(game):
+    q = []
+    with raw_mode(stdin):
+        reader = StreamReader()
+        loop = get_event_loop()
+        await loop.connect_read_pipe(lambda: StreamReaderProtocol(reader), stdin)
+        while not reader.at_eof():
+            ch = await reader.read(1)
+            # '' means EOF, chr(4) means EOT (sent by CTRL+D on UNIX terminals)
+            if not ch or ord(ch) <= 4:
+                break
+            elif ch == b"q":
+                game.game_over = True
+            elif ch == b"p":
+                game.pause()
+            elif ch == b"x":
+                game.rotate(-1)
+            elif ch == b" ":
+                game.hard_drop()
+            elif ch == b"\x1b":
+                q.append(ch)
+            elif q == [b"\x1b"] and ch == b"[":
+                q.append(ch)
+            elif q == [b"\x1b", b"["]:
+                if ch == b"D":
+                    # left
+                    game.move(-1)
+                elif ch == b"C":
+                    # right
+                    game.move(1)
+                elif ch == b"A":
+                    # up
+                    game.rotate(1)
+                elif ch == b"B":
+                    # down
+                    game.move_down(soft_drop=True)
+                q.clear()
+
+
+async def game_loop(game):
+    game.new_tetromino()
+    create_task(handle_input(game))
+    try:
+        async for tick in game.timer():
+            game.move_down()
+        print("game over, score:", game.score)
+    finally:
+        show_cursor()
+
+
 if __name__ == "__main__":
     game = Game()
-    run(game.game_loop())
+    run(game_loop(game))
